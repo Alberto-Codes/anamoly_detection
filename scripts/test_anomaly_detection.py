@@ -74,8 +74,13 @@ def save_anomaly_details(
             json.dump(anomaly_info, f, indent=2)
 
 
-def main() -> None:
-    """Run the anomaly detection test."""
+def main(max_anomalies_to_analyze: int | None = None) -> None:
+    """Run the anomaly detection test.
+
+    Args:
+        max_anomalies_to_analyze: Maximum number of anomalies to analyze for feature importance.
+            If None, analyze all anomalies. Defaults to None.
+    """
     # Initialize the detector
     detector = AnomalyDetector(contamination=0.01)  # Set low contamination for fraud detection
 
@@ -98,9 +103,13 @@ def main() -> None:
     print(f"\nFound {n_anomalies} anomalies in the dataset")
     print(f"Anomaly rate: {n_anomalies/len(anomalies):.2%}")
 
-    # Limit the number of anomalies to analyze (first 10)
-    anomaly_indices = anomalies[anomalies["is_anomaly"]].index[:10]
-    print(f"\nAnalyzing feature importance for first {len(anomaly_indices)} anomalies...")
+    # Get anomaly indices to analyze
+    anomaly_indices = anomalies[anomalies["is_anomaly"]].index
+    if max_anomalies_to_analyze is not None:
+        anomaly_indices = anomaly_indices[:max_anomalies_to_analyze]
+        print(f"\nAnalyzing feature importance for first {len(anomaly_indices)} anomalies...")
+    else:
+        print(f"\nAnalyzing feature importance for all {len(anomaly_indices)} anomalies...")
 
     # Get top drivers for anomalies
     start_time = time.time()
@@ -120,4 +129,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # You can change this number to analyze more or fewer anomalies
+    # Set to None to analyze all anomalies
+    main(max_anomalies_to_analyze=10)  # Default to 10 for quick testing
