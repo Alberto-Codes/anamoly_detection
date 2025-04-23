@@ -1,0 +1,39 @@
+[project]
+name = "anamoly-detection"
+version = "0.1.0"
+description = "A robust Python-based system for detecting anomalies in structured data with feature importance analysis"
+readme = "README.md"
+authors = [
+    { name = "Alberto-Codes", email = "94092485+Alberto-Codes@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "shap>=0.42.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0", # For Excel file support
+    "openpyxl>=3.1.0",
+    "requests>=2.32.3",
+    "tqdm>=4.66.0",
+    "ruff>=0.11.6",
+]
+
+[project.scripts]
+anamoly-detection = "anamoly_detection:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "UP", "PL"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["anamoly_detection"]
