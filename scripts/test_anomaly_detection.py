@@ -9,23 +9,46 @@ import time
 from pathlib import Path
 
 import pandas as pd
-
 from anamoly_detection import AnomalyDetector
 
 
 def save_anomaly_details(
+    original_data: pd.DataFrame,
     anomalies: pd.DataFrame,
     drivers: dict,
     output_dir: Path,
 ) -> None:
-    """Save detailed anomaly information to JSON files.
+    """Save detailed anomaly information to JSON files and export enhanced dataset.
 
     Args:
+        original_data: Original DataFrame before anomaly detection.
         anomalies: DataFrame containing anomaly detection results.
         drivers: Dictionary mapping anomaly indices to their top drivers.
         output_dir: Directory to save the output files.
     """
     output_dir.mkdir(exist_ok=True)
+
+    # Create enhanced dataset with anomaly information
+    enhanced_data = original_data.copy()
+    enhanced_data["is_anomaly"] = anomalies["is_anomaly"]
+    enhanced_data["anomaly_score"] = anomalies["anomaly_score"]
+    
+    # Add top driver information
+    enhanced_data["top_driver_1"] = None
+    enhanced_data["top_driver_1_importance"] = None
+    enhanced_data["top_driver_2"] = None
+    enhanced_data["top_driver_2_importance"] = None
+    
+    for idx, features in drivers.items():
+        if len(features) >= 1:
+            enhanced_data.at[idx, "top_driver_1"] = features[0][0]
+            enhanced_data.at[idx, "top_driver_1_importance"] = features[0][1]
+        if len(features) >= 2:
+            enhanced_data.at[idx, "top_driver_2"] = features[1][0]
+            enhanced_data.at[idx, "top_driver_2_importance"] = features[1][1]
+
+    # Save enhanced dataset
+    enhanced_data.to_csv(output_dir / "enhanced_dataset.csv", index=False)
 
     # Save all anomalies with their scores
     anomalies.to_csv(output_dir / "all_anomalies.csv", index=False)
@@ -54,9 +77,7 @@ def save_anomaly_details(
 def main() -> None:
     """Run the anomaly detection test."""
     # Initialize the detector
-    detector = AnomalyDetector(
-        contamination=0.01
-    )  # Set low contamination for fraud detection
+    detector = AnomalyDetector(contamination=0.01)  # Set low contamination for fraud detection
 
     # Load the data
     data_path = Path("data/creditcard.csv")
@@ -65,6 +86,7 @@ def main() -> None:
         return
 
     print("Loading data...")
+    original_data = pd.read_csv(data_path)
     data = detector.load_data(str(data_path))
 
     # Detect anomalies
@@ -78,9 +100,7 @@ def main() -> None:
 
     # Limit the number of anomalies to analyze (first 10)
     anomaly_indices = anomalies[anomalies["is_anomaly"]].index[:10]
-    print(
-        f"\nAnalyzing feature importance for first {len(anomaly_indices)} anomalies..."
-    )
+    print(f"\nAnalyzing feature importance for first {len(anomaly_indices)} anomalies...")
 
     # Get top drivers for anomalies
     start_time = time.time()
@@ -90,7 +110,7 @@ def main() -> None:
 
     # Save detailed results
     print("\nSaving detailed results...")
-    save_anomaly_details(anomalies, drivers, Path("output"))
+    save_anomaly_details(original_data, anomalies, drivers, Path("output"))
 
     # Plot results
     print("\nGenerating visualizations...")
