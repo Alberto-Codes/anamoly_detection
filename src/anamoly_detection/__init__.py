@@ -8,5 +8,6 @@ from .detector import AnomalyDetector
 
 __all__ = ["AnomalyDetector"]
 
+
 def main() -> None:
     print("Hello from anamoly-detection!")
